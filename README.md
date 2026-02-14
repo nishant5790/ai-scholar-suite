@@ -1,6 +1,6 @@
 # AI Research Paper Generator
 
-AI-powered system for generating structured academic research papers. Built on LangChain agents with OpenAI, it combines web search (DuckDuckGo), academic paper retrieval (ArXiv), and intelligent section writing to produce complete, formatted research papers as PDFs.
+AI-powered system for generating structured academic research papers. Built on LangChain agents with OpenAI, it combines web search (DuckDuckGo), academic paper retrieval (ArXiv), and intelligent section writing to produce complete, formatted research papers as PDFs. with CI CD
 
 ## Features
 
