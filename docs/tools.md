@@ -240,4 +240,4 @@ All seven sections must be present in `PaperState.sections` before export. If an
 - Title page with paper title, author, and date
 - Each section with formatted headings and body text
 - Bibliography at the end (if citations exist)
-- Consistent fonts, margins, and page numbers throughout
+- Consistent fonts, margins, and page numbers throughout ok
