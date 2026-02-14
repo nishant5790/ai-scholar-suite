@@ -1,337 +1,111 @@
 # AI Research Paper Generator
 
-An AI-powered research paper generator using LangChain agents. This system helps researchers write structured, high-quality academic papers by leveraging multiple AI tools including web search, ArXiv retrieval, and intelligent section writing.
+AI-powered system for generating structured academic research papers. Built on LangChain agents with OpenAI, it combines web search (DuckDuckGo), academic paper retrieval (ArXiv), and intelligent section writing to produce complete, formatted research papers as PDFs.
 
 ## Features
 
-- **Intelligent Paper Outline Generation**: Automatically generates structured outlines for research papers
-- **Section-by-Section Writing**: AI-powered writing for each paper section (abstract, introduction, methodology, etc.)
-- **Web Search Integration**: Search the web using DuckDuckGo for the latest information and articles
-- **ArXiv Integration**: Search and retrieve academic papers and preprints from ArXiv
-- **Reference Management**: Automatic citation management with support for APA, IEEE, and MLA styles
-- **PDF Export**: Export completed papers as professionally formatted PDFs
-- **REST API**: Full-featured API for integration with other applications
-- **Session Management**: Maintain multiple paper writing sessions concurrently
-
-## Tools Available
-
-1. **Outline Builder**: Generates structured paper outlines based on topic and instructions
-2. **Section Writer**: Writes individual sections with academic tone and proper structure
-3. **Folder Reader**: Ingests reference materials from local folders (PDF, TXT, DOCX, MD)
-4. **Reference Manager**: Manages citations and generates bibliographies
-5. **PDF Writer**: Exports papers to formatted PDF documents
-6. **Web Search**: Searches DuckDuckGo for recent information and web content
-7. **ArXiv Search**: Retrieves academic papers from ArXiv database
-
-## Prerequisites
-
-- Python 3.11 or higher
-- OpenAI API key
-- Internet connection (for web search and ArXiv retrieval)
-
-## Installation
-
-### 1. Clone or Navigate to the Repository
-
-```bash
-cd /Users/nkumar/AI-research
-```
-
-### 2. Install Dependencies
-
-Using pip:
-
-```bash
-pip install -e .
-```
-
-Or install with development dependencies:
-
-```bash
-pip install -e ".[dev]"
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env` file in the project root (already created with your API key):
-
-```bash
-# .env file
-OPENAI_API_KEY=your-openai-api-key-here
-LLM_MODEL=gpt-4o-mini
-CHROMADB_PATH=./chroma_data
-OUTPUT_DIR=./output
-API_HOST=0.0.0.0
-API_PORT=8000
-```
-
-The `.env` file has already been created with your OpenAI API key.
+- **Paper Outline Generation** -- structured outlines with all standard academic sections
+- **Section Writing** -- AI-generated content for each section with academic tone
+- **Web Search** -- DuckDuckGo integration for the latest information
+- **ArXiv Retrieval** -- academic paper search via `langchain-community` ArxivRetriever
+- **Reference Management** -- citation tracking with APA, IEEE, and MLA formatting
+- **PDF Export** -- formatted multi-page PDF output via ReportLab
+- **REST API** -- full FastAPI server with session-based workflows
+- **Reference Ingestion** -- reads local PDF, TXT, DOCX, and Markdown files into ChromaDB
+- **Docker Support** -- multi-stage Dockerfile and docker-compose for deployment
 
 ## Quick Start
 
-### Option 1: Direct Test Script (Fastest)
+### 1. Install
 
-Run the test script to generate a research paper on "AI fine tuning":
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+### 2. Configure
+
+Create a `.env` file in the project root:
+
+```
+OPENAI_API_KEY=sk-your-key-here
+LLM_MODEL=gpt-4o-mini
+```
+
+### 3. Generate a Paper (script)
 
 ```bash
 python test_research_generation.py
 ```
 
-This will:
-- Search ArXiv for academic papers on AI fine tuning
-- Search the web for latest information
-- Generate a paper outline
-- Write multiple sections (abstract, introduction, methodology, conclusion)
-- Export the paper as PDF to `./output/ai_fine_tuning_research.pdf`
+This searches ArXiv and the web for material on "AI fine tuning", builds an outline, writes all seven sections, and exports a PDF to `./output/ai_fine_tuning_research.pdf`.
 
-### Option 2: API Server
+### 4. Generate a Paper (API)
 
-#### Start the Server
+Start the server:
 
 ```bash
 python -m src.main
 ```
 
-The server will start on `http://localhost:8000`
-
-#### Test the API
-
-In a separate terminal, run the API test client:
+Then in another terminal:
 
 ```bash
 python test_api_client.py
 ```
 
-## Usage Examples
-
-### Using the Tools Directly
-
-```python
-from src.tools.web_search import WebSearchTool
-from src.tools.arxiv_search import ArxivSearchTool
-from src.tools.outline_builder import OutlineBuilderTool
-from langchain_openai import ChatOpenAI
-
-# Initialize LLM
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.3)
-
-# Search the web
-web_tool = WebSearchTool()
-web_results = web_tool._run(query="AI fine tuning 2026", max_results=5)
-print(f"Found {web_results.total_results} web results")
-
-# Search ArXiv
-arxiv_tool = ArxivSearchTool()
-arxiv_results = arxiv_tool._run(query="AI fine tuning", max_docs=3)
-print(f"Found {arxiv_results.total_papers} papers")
-
-# Generate outline
-outline_tool = OutlineBuilderTool(llm=llm, vector_store=None)
-outline = outline_tool._run(
-    topic="AI fine tuning",
-    instructions="Create a comprehensive survey paper outline"
-)
-```
-
-### Using the REST API
-
-#### Create a Session
-
-```bash
-curl -X POST http://localhost:8000/api/v1/sessions
-```
-
-Response:
-```json
-{
-  "session_id": "abc123..."
-}
-```
-
-#### Generate Outline
-
-```bash
-curl -X POST http://localhost:8000/api/v1/sessions/{session_id}/outline \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic": "AI fine tuning",
-    "instructions": "Create a comprehensive survey paper outline"
-  }'
-```
-
-#### Generate a Section
-
-```bash
-curl -X POST http://localhost:8000/api/v1/sessions/{session_id}/sections/abstract \
-  -H "Content-Type: application/json" \
-  -d '{
-    "feedback": ""
-  }'
-```
-
-#### Export to PDF
-
-```bash
-curl -X POST http://localhost:8000/api/v1/sessions/{session_id}/export/pdf \
-  -H "Content-Type: application/json" \
-  -d '{
-    "output_path": "./output/my_paper.pdf"
-  }'
-```
-
-## API Endpoints
-
-- `POST /api/v1/sessions` - Create a new paper session
-- `POST /api/v1/sessions/{id}/chat` - Send a message to the agent
-- `POST /api/v1/sessions/{id}/outline` - Generate paper outline
-- `POST /api/v1/sessions/{id}/sections/{name}` - Generate a specific section
-- `POST /api/v1/sessions/{id}/references/ingest` - Ingest reference folder
-- `GET /api/v1/sessions/{id}/bibliography` - Get formatted bibliography
-- `POST /api/v1/sessions/{id}/export/pdf` - Export paper as PDF
-- `POST /api/v1/sessions/{id}/save` - Save paper state
-- `POST /api/v1/sessions/{id}/load` - Load paper state
-
-## Section Types
-
-Valid section types for paper generation:
-
-- `abstract` - Paper abstract/summary
-- `introduction` - Introduction section
-- `literature_review` - Literature review
-- `methodology` - Methodology/methods section
-- `results` - Results section
-- `discussion` - Discussion section
-- `conclusion` - Conclusion section
-
-## Citation Styles
-
-Supported citation formatting styles:
-
-- `apa` - APA (American Psychological Association)
-- `ieee` - IEEE
-- `mla` - MLA (Modern Language Association)
+Or call endpoints directly -- see [docs/api.md](docs/api.md) for the full reference.
 
 ## Project Structure
 
 ```
-AI-research/
-├── src/
-│   ├── agents/
-│   │   └── paper_agent.py          # Main agent orchestrator
-│   ├── api/
-│   │   └── server.py                # FastAPI REST API
-│   ├── core/
-│   │   ├── session_manager.py       # Session management
-│   │   └── state_manager.py         # Paper state serialization
-│   ├── models/
-│   │   └── schemas.py               # Pydantic data models
-│   ├── tools/
-│   │   ├── arxiv_search.py          # ArXiv retrieval tool
-│   │   ├── folder_reader.py         # Local file ingestion
-│   │   ├── outline_builder.py       # Outline generation
-│   │   ├── pdf_writer.py            # PDF export
-│   │   ├── reference_manager.py     # Citation management
-│   │   ├── section_writer.py        # Section writing
-│   │   └── web_search.py            # DuckDuckGo search tool
-│   ├── config.py                    # Configuration settings
-│   └── main.py                      # Application entry point
-├── tests/                           # Unit tests
-├── .env                             # Environment variables (API keys)
-├── pyproject.toml                   # Project dependencies
-├── test_research_generation.py     # Direct test script
-├── test_api_client.py              # API integration test
-└── README.md                        # This file
+src/
+  agents/paper_agent.py       LangChain agent orchestrating all tools
+  api/server.py               FastAPI REST endpoints
+  core/session_manager.py     In-memory session store
+  core/state_manager.py       JSON serialization of paper state
+  models/schemas.py           Pydantic data models
+  tools/
+    arxiv_search.py           ArXiv paper retrieval
+    web_search.py             DuckDuckGo web search
+    outline_builder.py        Structured outline generation
+    section_writer.py         Per-section content writing
+    folder_reader.py          Local reference file ingestion
+    reference_manager.py      Citation and bibliography management
+    pdf_writer.py             PDF document export
+  config.py                   Settings via pydantic-settings + dotenv
+  main.py                     Application entry point
+tests/                        Unit and property-based tests
+docs/                         Detailed documentation
 ```
 
-## Output
+## Documentation
 
-Generated papers are saved in the `./output/` directory by default. This can be configured via the `OUTPUT_DIR` environment variable.
+| Document | Description |
+|----------|-------------|
+| [docs/architecture.md](docs/architecture.md) | System architecture and data flow |
+| [docs/tools.md](docs/tools.md) | Detailed reference for all seven tools |
+| [docs/api.md](docs/api.md) | REST API endpoint reference |
+| [docs/configuration.md](docs/configuration.md) | Environment variables and settings |
+| [docs/development.md](docs/development.md) | Development setup, testing, Docker |
 
-## Troubleshooting
+## Dependencies
 
-### API Key Issues
+Core runtime dependencies (see `pyproject.toml` for versions):
 
-If you see "OPENAI_API_KEY not found" errors:
-
-1. Ensure the `.env` file exists in the project root
-2. Verify the `OPENAI_API_KEY` is set correctly in `.env`
-3. Restart the server or test script after updating `.env`
-
-### Import Errors
-
-If you encounter import errors:
-
-```bash
-pip install -e .
-```
-
-This installs the package in editable mode with all dependencies.
-
-### Connection Errors
-
-If the API test fails to connect:
-
-1. Make sure the server is running: `python -m src.main`
-2. Check that port 8000 is not in use by another application
-3. Verify the server started successfully (check console output)
-
-### Web Search Issues
-
-If DuckDuckGo search fails:
-
-- This may be due to rate limiting or network issues
-- The system will continue to work without web search results
-- Try again after a short delay
-
-## Development
-
-### Running Tests
-
-```bash
-pytest tests/
-```
-
-### Running with Docker
-
-```bash
-# Build the image
-docker-compose build
-
-# Start the service
-docker-compose up
-```
-
-The API will be available at `http://localhost:8000`
+| Package | Purpose |
+|---------|---------|
+| langchain, langchain-openai | Agent framework and OpenAI integration |
+| langchain-community | ArXiv retriever |
+| duckduckgo-search | Web search |
+| arxiv | ArXiv API client |
+| fastapi, uvicorn | REST API server |
+| reportlab | PDF generation |
+| chromadb | Vector store for reference materials |
+| pydantic, pydantic-settings | Data models and configuration |
+| python-dotenv | `.env` file loading |
 
 ## License
 
 This project is part of an AI research initiative.
-
-## Contributing
-
-When adding new tools or features:
-
-1. Follow the existing tool pattern (inherit from `BaseTool`)
-2. Add proper input validation with Pydantic models
-3. Include comprehensive docstrings
-4. Add unit tests in the `tests/` directory
-5. Update this README with new features
-
-## Support
-
-For issues or questions:
-
-1. Check the troubleshooting section above
-2. Review the test scripts for usage examples
-3. Examine the existing tools for implementation patterns
-
-## Acknowledgments
-
-Built with:
-- [LangChain](https://python.langchain.com/) - Agent framework
-- [OpenAI](https://openai.com/) - Language models
-- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
-- [ReportLab](https://www.reportlab.com/) - PDF generation
-- [ChromaDB](https://www.trychroma.com/) - Vector database
-- [DuckDuckGo Search](https://pypi.org/project/duckduckgo-search/) - Web search
-- [ArXiv](https://arxiv.org/) - Academic paper repository
